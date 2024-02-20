@@ -54,9 +54,9 @@
 }
 
 
-.rows:nth-child(2) > .square:nth-child(4){
+/* .rows:nth-child(2) > .square:nth-child(4){
   background-color: red;
-}
+} */
 
 .board{
   width: 70%;
@@ -68,8 +68,9 @@
   /* top: 145px;
   left: 325px;
   transform: rotate(0deg); */
-  position: absolute;
+  /* position: relative; */
 }
+
 /* .row{
   display: flex;
   margin: auto;

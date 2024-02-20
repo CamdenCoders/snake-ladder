@@ -34,17 +34,41 @@
   height: 100px;
 }
 
+
+
 .square{
   width: 70px;
   height: 70px;
   border: 1px solid red;
-  padding: 20px;
   float: left;
+  color: white;
+}
+
+.personIcon{
+  font-size: 30px;
+  
+}
+
+.squareP{
+  padding-left: 30px;
+}
+
+
+.rows:nth-child(2) > .square:nth-child(4){
+  background-color: red;
 }
 
 .board{
-  width: 60%;
+  width: 70%;
   margin: auto;
+  position: relative;
+}
+
+#seedi{
+  /* top: 145px;
+  left: 325px;
+  transform: rotate(0deg); */
+  position: absolute;
 }
 /* .row{
   display: flex;

@@ -3,30 +3,32 @@ import './App.css';
 import Dice from './Dice'
 import Person from './Person';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import seedi from './ladder.png';
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 
+const playerContext = createContext();
 
-function Square({ val, pos }){
+function Square({ val }){
+  const playerPos = useContext(playerContext);
   return (
   <div className="square">
     <p className="squareP">{val}</p>
-    <Person pos = {val} position={pos}/>
+    <Person pos = {val} position={playerPos}/>
   </div>  
   );
 }
 
-function Rows({ j, flag, player }){
+function Rows({ j, flag }){
   let row = [];
   for(let i=0; i<10; i++)
   {
     if(flag)
-    row.push(<Square val = {(i+1) + j} pos={player}/>);
-    else row.push(<Square val = {(10 - i) + j} pos={player}/>);
+    row.push(<Square val = {(i+1) + j} />);
+    else row.push(<Square val = {(10 - i) + j} />);
   }
   return(
     
@@ -81,7 +83,7 @@ function Ladder({startCellPosition, endCellPosition}){
   );
 }
 
-function Board({ personPos }){
+function Board(){
   const [startCellPosition, setStartCellPosition] = useState(null);
   const [endCellPosition, setEndCellPosition] = useState(null);
   let flag = false;
@@ -90,7 +92,7 @@ function Board({ personPos }){
   //To create board.
   for(let i=0; i<10; i++)
   {
-    row1.push(<Rows j = {(9-i)*10} flag = {flag} player={personPos}/>);
+    row1.push(<Rows j = {(9-i)*10} flag = {flag} />);
     flag = !flag;
   }
   // for(let i=0;i<10; i++)
@@ -144,9 +146,12 @@ function Game(){
   }
 
   return <Row>
+  <playerContext.Provider value={player}>
   <Col sm = {8}>
-    <Board personPos = {player}/>
+    <Board/>
   </Col>
+  </playerContext.Provider>
+  
   <Col sm = {4}>
     <Dice number={diceNum} onDiceClick={() => roll()}/>
   </Col>

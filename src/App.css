@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  background-color: #282c34;
 }
 
 .App-logo {
@@ -14,7 +15,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -27,6 +28,54 @@
 .App-link {
   color: #61dafb;
 }
+
+.cols{
+  width: 100px;
+  height: 100px;
+}
+
+
+
+.square{
+  width: 70px;
+  height: 70px;
+  border: 1px solid red;
+  float: left;
+  color: white;
+}
+
+.personIcon{
+  font-size: 30px;
+  
+}
+
+.squareP{
+  padding-left: 30px;
+}
+
+
+/* .rows:nth-child(2) > .square:nth-child(4){
+  background-color: red;
+} */
+
+.board{
+  width: 70%;
+  margin: auto;
+  position: relative;
+}
+
+#seedi{
+  /* top: 145px;
+  left: 325px;
+  transform: rotate(0deg); */
+  /* position: relative; */
+}
+
+/* .row{
+  display: flex;
+  margin: auto;
+
+} */
 
 @keyframes App-logo-spin {
   from {

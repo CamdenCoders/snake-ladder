@@ -5,7 +5,7 @@ function Header(){
 return(
 
     <div>
-      <h1 style={{color: "white"}}>Snakes and Ladders</h1>
+      <h1 className="text-white">Snakes and Ladders</h1>
     </div>
   
 );

@@ -5,7 +5,7 @@ function Header(){
 return(
 
     <div>
-      <h1 className="text-red-500">Snakes and Ladders</h1>
+      <h1 className="text-white">Snakes and Ladders</h1>
     </div>
   
 );

@@ -6,6 +6,7 @@ import { useState, useEffect, createContext } from 'react';
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Button from './ResetButton';
 
 export const playerContext = createContext();
 export const ladderContext = createContext();
@@ -33,6 +34,7 @@ function Game(){
         let max = 6;
         let randDice = Math.floor(Math.random() * (max - min +1) ) + min;
         let nextPlayerPos = randDice + player;
+        if(nextPlayerPos > 100) nextPlayerPos = 100;
         setDiceNum(randDice);
         setPlayer(nextPlayerPos);
         if(ladderMap.has(nextPlayerPos))
@@ -41,6 +43,12 @@ function Game(){
         // checkBonus();
     }
 
+    function resetGame(){
+        setPlayer(1);
+        setDiceNum(6);
+        setReachedItemFlag(false);
+    }
+    
     useEffect(() => {
         if(reachedItemFlag)
           setPlayer(ladderMap.get(player));
@@ -57,6 +65,7 @@ function Game(){
     </ladderContext.Provider>
     <Col sm = {4}>
       <Dice number={diceNum} onDiceClick={() => roll()}/>
+      <Button onButtonClick = {() => resetGame()}></Button>
     </Col> 
   </Row>;
   }

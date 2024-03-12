@@ -2,6 +2,8 @@ import Dice from './Dice'
 import Board from './Board';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect, createContext } from 'react';
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 
 
 import Row from 'react-bootstrap/Row';
@@ -34,12 +36,12 @@ function Game(){
         let max = 6;
         let randDice = Math.floor(Math.random() * (max - min +1) ) + min;
         let nextPlayerPos = randDice + player;
-        if(nextPlayerPos > 100) nextPlayerPos = 100;
+        if(nextPlayerPos > 100) nextPlayerPos = nextPlayerPos - randDice;
         setDiceNum(randDice);
         setPlayer(nextPlayerPos);
         if(ladderMap.has(nextPlayerPos))
           setReachedItemFlag(true);
-
+        
         // checkBonus();
     }
 

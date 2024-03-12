@@ -17,12 +17,16 @@ function Game(){
     const [player, setPlayer] = useState(1);
     const [reachedItemFlag, setReachedItemFlag] = useState(false);
     const ladderMap = new Map([
-      [3,43],
-      [7,52],
-      [12,34],
-      [45,82],
-      [67,99],
-      [80,91]
+      [10,12],
+      [11,33],
+      [20,38],
+      [6,24],
+      [40,59],
+      [45,54],
+      [64,78],
+      [72,91],
+      [86,96]
+
   ]);
   
   let snlobj = {

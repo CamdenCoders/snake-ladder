@@ -10,9 +10,7 @@ function Ladder({startCellPosition, endCellPosition}){
     // const deltaX = endCellPosition.left - startCellPosition.left;
     // const deltaY = endCellPosition.top - startCellPosition.top;
     const angle =  (startCellPosition.left > endCellPosition.left) ? -1 : 1 ;
-  
-    console.log("Ladder");
-    // Style for the ladder
+      // Style for the ladder
     const ladderStyle = {
       top: ladderTop,
       left: ladderLeft,

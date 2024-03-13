@@ -1,6 +1,7 @@
 import seedi from './ladder.png';
+import saanp from './Snake.png';
 
-function Ladder({startCellPosition, endCellPosition}){
+function Ladder({startCellPosition, endCellPosition, itemType}){
     const ladderTop = Math.min(startCellPosition.top, endCellPosition.top) + startCellPosition.width/3  + 'px';
     const ladderLeft = Math.min(startCellPosition.left, endCellPosition.left) + startCellPosition.width/2  + 'px';
     const ladderWidth = Math.abs(startCellPosition.left - endCellPosition.left ) + 'px';
@@ -10,9 +11,7 @@ function Ladder({startCellPosition, endCellPosition}){
     // const deltaX = endCellPosition.left - startCellPosition.left;
     // const deltaY = endCellPosition.top - startCellPosition.top;
     const angle =  (startCellPosition.left > endCellPosition.left) ? -1 : 1 ;
-  
-    console.log("Ladder");
-    // Style for the ladder
+      // Style for the ladder
     const ladderStyle = {
       top: ladderTop,
       left: ladderLeft,
@@ -22,11 +21,18 @@ function Ladder({startCellPosition, endCellPosition}){
       transform: `scaleX(${angle})`
     };
   
+    if(itemType === "Ladder")
+      return (
+      <div id = "seedi" >
+        <img  src = {seedi} alt = "ladder" style={ladderStyle}/>
+      </div>
+      );
+    
     return (
-    <div id = "seedi" >
-      <img  src = {seedi} alt = "ladder" style={ladderStyle}/>
-    </div>
-    );
+      <div id = "saanp" >
+        <img  src = {saanp} alt = "snake" style={ladderStyle}/>
+      </div>
+      );
   }
 
 

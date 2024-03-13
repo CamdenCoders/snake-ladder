@@ -34,6 +34,7 @@ function Square({ val }){
   
 function Board(){
     const ladderCoords = useContext(ladderContext).ladders;
+    const snakeCoords = useContext(ladderContext).snakes;
     const [ladderPositions, setLadderPositions] = useState(null);
     let flag = false;
     let row1 = [];
@@ -47,6 +48,17 @@ function Board(){
   //To Locate the ladder start and end posiitons
   useEffect(() => {
       for(let [end, start] of ladderCoords){
+        const startCell = document.getElementById(start);
+        const endCell = document.getElementById(end);
+        if(startCell && endCell){
+          const startCellRect = startCell.getBoundingClientRect();
+          const endCellRect = endCell.getBoundingClientRect();
+          ladders.set(start, <Ladder startCellPosition={startCellRect} endCellPosition={endCellRect} itemType={"Ladder"}/>);
+          setLadderPositions(ladders);
+        }
+      }
+
+      for(let [start, end] of snakeCoords){
         const startCell = document.getElementById(start);
         const endCell = document.getElementById(end);
         if(startCell && endCell){

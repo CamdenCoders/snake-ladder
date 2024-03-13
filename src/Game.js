@@ -31,36 +31,52 @@ function Game(){
       [86,96]
 
   ]);
+  const snakeMap = new Map([
+    [19, 4],
+    [13, 7],
+    [48, 14],
+    [57, 36],
+    [68, 49],
+    [83, 61],
+    [87, 66],
+    [94, 88],
+    [98, 84]
+
+]);
   
   let snlobj = {
-    ladders: ladderMap
+    ladders: ladderMap,
+    snakes: snakeMap
   };
   
+  let prevPersonObj;
+  let personStart;
     function roll(){
         let min = 1;
         let max = 6;
         let randDice = Math.floor(Math.random() * (max - min +1) ) + min;
         let nextPlayerPos = randDice + player;
-        const personObj = document.getElementById("personAnim");
-        console.log(nodeRef.current);
-        
+        prevPersonObj = nodeRef.current;
         //gsap.to(nodeRef.current, {color:"red", y:100, duration:2});
         //gsap.to("#personAnim", {color:"green", y:100, duration:1});
-        const personEnd = personObj.getBoundingClientRect();
-        
-
+        //personStart = prevPersonObj.getBoundingClientRect();
+        console.log(personStart);
         if(nextPlayerPos > 100) nextPlayerPos = nextPlayerPos - randDice;
         setDiceNum(randDice);
         //timeout
         setPlayer(nextPlayerPos);
-        if(ladderMap.has(nextPlayerPos))
+        
+        if(ladderMap.has(nextPlayerPos) || snakeMap.has(nextPlayerPos))
           setReachedItemFlag(true);
         // checkBonus();
     }
 
-    useEffect(()=>{
-      gsap.to(nodeRef.current, {color:"green", x:100, duration:1});
-    }, [player]);
+    // useEffect(()=>{
+     
+    //     gsap.from(nodeRef.current, {x:personStart.left, y: personStart.top});
+    //     console.log(personStart);
+      
+    // }, [personStart]);
 
 
     function resetGame(){
@@ -70,9 +86,11 @@ function Game(){
     }
     
     useEffect(() => {
-        if(reachedItemFlag)
+        if(reachedItemFlag && ladderMap.get(player))
           setPlayer(ladderMap.get(player));
-        setReachedItemFlag(false);
+        else if(reachedItemFlag && snakeMap.get(player))
+          setPlayer(snakeMap.get(player));
+      setReachedItemFlag(false);
     }, [reachedItemFlag]);
 
     return <Row>

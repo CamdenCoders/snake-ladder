@@ -11,8 +11,8 @@ function Person({pos, position}){
       console.log(position);
       return  (
       <>
-      <FontAwesomeIcon className="personIcon" icon={faPerson}/>
-      <FontAwesomeIcon ref={ref} id="personAnim" className="personIcon opacity-0" icon={faPerson}/>
+      {/* <FontAwesomeIcon className="personIcon" icon={faPerson}/> */}
+      <FontAwesomeIcon ref={ref} id="personAnim" className="personIcon" icon={faPerson}/>
       </>
       
       );

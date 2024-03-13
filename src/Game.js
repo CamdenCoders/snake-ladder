@@ -13,70 +13,68 @@ export const playerContext = createContext();
 export const ladderContext = createContext();
 export const refContext = createContext();
 
+const ladderMap = new Map([
+  [10,12],
+  [11,33],
+  [20,38],
+  [6,24],
+  [40,59],
+  [45,54],
+  [64,78],
+  [72,91],
+  [86,96]
+
+]);
+const snakeMap = new Map([
+[19, 4],
+[13, 7],
+[48, 14],
+[57, 36],
+[68, 49],
+[83, 61],
+[87, 66],
+[94, 88],
+[98, 84]
+
+]);
 
 function Game(){
-  const nodeRef = useRef(null);
+    const nodeRef = useRef(null);
     const [diceNum, setDiceNum] = useState(6);
     const [player, setPlayer] = useState(1);
     const [reachedItemFlag, setReachedItemFlag] = useState(false);
-    const ladderMap = new Map([
-      [10,12],
-      [11,33],
-      [20,38],
-      [6,24],
-      [40,59],
-      [45,54],
-      [64,78],
-      [72,91],
-      [86,96]
-
-  ]);
-  const snakeMap = new Map([
-    [19, 4],
-    [13, 7],
-    [48, 14],
-    [57, 36],
-    [68, 49],
-    [83, 61],
-    [87, 66],
-    [94, 88],
-    [98, 84]
-
-]);
   
   let snlobj = {
     ladders: ladderMap,
     snakes: snakeMap
   };
-  
-  let prevPersonObj;
-  let personStart;
-    function roll(){
-        let min = 1;
-        let max = 6;
-        let randDice = Math.floor(Math.random() * (max - min +1) ) + min;
-        let nextPlayerPos = randDice + player;
-        prevPersonObj = nodeRef.current;
-        //gsap.to(nodeRef.current, {color:"red", y:100, duration:2});
-        //gsap.to("#personAnim", {color:"green", y:100, duration:1});
-        //personStart = prevPersonObj.getBoundingClientRect();
-        console.log(personStart);
-        if(nextPlayerPos > 100) nextPlayerPos = nextPlayerPos - randDice;
-        setDiceNum(randDice);
-        //timeout
-        setPlayer(nextPlayerPos);
-        
-        if(ladderMap.has(nextPlayerPos) || snakeMap.has(nextPlayerPos))
-          setReachedItemFlag(true);
-        // checkBonus();
+let animStartObj;
+let useflag = 0;
+async function roll(){
+      let [diceRoll, nextPlayerPos] = await movePlayer(player);
+      let prevPersonObj = nodeRef.current;
+      const {top, left} = prevPersonObj.getBoundingClientRect();
+      animStartObj = {top, left};
+      useflag = 1;
+      //console.log(animStartObj);
+      setDiceNum(diceRoll);
+      setPlayer(nextPlayerPos);
+    
+      //gsap.from(nodeRef.current, {color:"red", y:100, duration:2});
+      //gsap.to("#personAnim", {color:"green", y:100, duration:1});
+      
+      if(ladderMap.has(nextPlayerPos) || snakeMap.has(nextPlayerPos))
+        setReachedItemFlag(true);
+      // checkBonus();
     }
 
-    // useEffect(()=>{
-     
-    //     gsap.from(nodeRef.current, {x:personStart.left, y: personStart.top});
-    //     console.log(personStart);
-      
-    // }, [personStart]);
+    useEffect(()=>{
+      if(useflag === 1)  {
+        console.log(animStartObj);
+        gsap.from(nodeRef.current, {x: animStartObj.left, y: animStartObj.top});
+
+      } 
+    });
 
 
     function resetGame(){
@@ -112,3 +110,16 @@ function Game(){
   }
   
   export default Game;
+
+ 
+
+function movePlayer(player){
+  let min = 1;
+  let max = 6;
+  let randDice = Math.floor(Math.random() * (max - min +1) ) + min;
+  let nextPlayerPos = randDice + player;
+
+  if(nextPlayerPos > 100) nextPlayerPos = nextPlayerPos - randDice;
+
+  return [randDice, nextPlayerPos];
+}

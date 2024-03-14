@@ -2,7 +2,8 @@ import Dice from './Dice'
 import Board from './Board';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect, createContext, useRef } from 'react';
-import { gsap } from "gsap";
+import gsap from "gsap";
+import {useGSAP} from '@gsap/react';
 
 
 import Row from 'react-bootstrap/Row';
@@ -26,16 +27,15 @@ const ladderMap = new Map([
 
 ]);
 const snakeMap = new Map([
-[19, 4],
-[13, 7],
-[48, 14],
-[57, 36],
-[68, 49],
-[83, 61],
-[87, 66],
-[94, 88],
-[98, 84]
-
+  [19, 4],
+  [13, 7],
+  [48, 14],
+  [57, 36],
+  [68, 49],
+  [83, 61],
+  [87, 66],
+  [94, 88],
+  [98, 84]
 ]);
 
 function Game(){
@@ -43,38 +43,43 @@ function Game(){
     const [diceNum, setDiceNum] = useState(6);
     const [player, setPlayer] = useState(1);
     const [reachedItemFlag, setReachedItemFlag] = useState(false);
+    const animStartObj = useRef(null);
   
   let snlobj = {
     ladders: ladderMap,
     snakes: snakeMap
   };
-let animStartObj;
-let useflag = 0;
+
+// let useflag = 0;
 async function roll(){
       let [diceRoll, nextPlayerPos] = await movePlayer(player);
-      let prevPersonObj = nodeRef.current;
-      const {top, left} = prevPersonObj.getBoundingClientRect();
-      animStartObj = {top, left};
-      useflag = 1;
-      //console.log(animStartObj);
+      
+      animStartObj.current = await getPlayerCoords(nodeRef.current);
+
       setDiceNum(diceRoll);
       setPlayer(nextPlayerPos);
-    
-      //gsap.from(nodeRef.current, {color:"red", y:100, duration:2});
-      //gsap.to("#personAnim", {color:"green", y:100, duration:1});
+  
+      setTimeout(() => {
+        if(ladderMap.has(nextPlayerPos) || snakeMap.has(nextPlayerPos)){
+          animStartObj.current = getPlayerCoords(nodeRef.current);
+          setTimeout(() => {  
+              setReachedItemFlag(true);
+          }, 500);
+        }
+      }, 500);
       
-      if(ladderMap.has(nextPlayerPos) || snakeMap.has(nextPlayerPos))
-        setReachedItemFlag(true);
+
       // checkBonus();
     }
 
-    useEffect(()=>{
-      if(useflag === 1)  {
-        console.log(animStartObj);
-        gsap.from(nodeRef.current, {x: animStartObj.left, y: animStartObj.top});
-
+    useGSAP(()=>{
+      if(animStartObj.current)  {
+        console.log(animStartObj.current);
+        const {top, left} = nodeRef.current.getBoundingClientRect();
+        gsap.from(nodeRef.current, {x: animStartObj.current.left-left, y: animStartObj.current.top-top, 
+        duration: 0.5});
       } 
-    });
+    },{ dependencies: [player], revertOnUpdate: false});
 
 
     function resetGame(){
@@ -111,7 +116,10 @@ async function roll(){
   
   export default Game;
 
- 
+function getPlayerCoords(domObj){
+  const {top, left} = domObj.getBoundingClientRect();
+  return {top, left};
+}
 
 function movePlayer(player){
   let min = 1;

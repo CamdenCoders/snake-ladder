@@ -8,7 +8,6 @@ function Person({pos, position}){
   // gsap.to("#personAnim", {color:"green", y:100, duration:1});
   const ref = useContext(refContext);
     if(pos === position){
-      console.log(position);
       return  (
       <>
       {/* <FontAwesomeIcon className="personIcon" icon={faPerson}/> */}

@@ -1,20 +1,12 @@
 import './App.css';
 import Game from './Game';
 
-function Header(){
-return(
 
-    <div>
-      <h1 className="text-white">Snakes and Ladders</h1>
-    </div>
-  
-);
-}
 
 
 function App() {
   return (<>
-    <div className="App">
+    <div className="text-center bg-black h-screen sm:h-4/5 font-quicksand font-semibold">
       {/* <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
@@ -29,7 +21,7 @@ function App() {
           Learn React
         </a>
       </header> */}
-      <Header/>
+      
       <Game/>
     </div>
   </>

@@ -11,7 +11,7 @@ function Person({pos, position}){
       return  (
       <>
       {/* <FontAwesomeIcon className="personIcon" icon={faPerson}/> */}
-      <FontAwesomeIcon ref={ref} id="personAnim" className="personIcon" icon={faPerson}/>
+      <FontAwesomeIcon ref={ref} id="personAnim" className="-translate-y-6 sm:translate-y-0 sm:mb-0 text-sm sm:text-3xl" icon={faPerson}/>
       </>
       
       );

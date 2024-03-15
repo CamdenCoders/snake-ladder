@@ -10,8 +10,8 @@ import { useState, useEffect, useContext } from 'react';
 function Square({ val }){
     const playerPos = useContext(playerContext);
     return (
-    <div id = {val} className="square">
-        <p className="squareP">{val}</p>
+    <div id = {val} className="w-9 h-9 sm:w-20 sm:h-20 border-1 border-red-500 float-left text-white">
+        <p className="text-xs sm:text-base sm:pl-12">{val}</p>
       <Person pos = {val} position={playerPos}/>
     </div>  
     );
@@ -54,7 +54,7 @@ function Board(){
           const startCellRect = startCell.getBoundingClientRect();
           const endCellRect = endCell.getBoundingClientRect();
           ladders.set(start, <Ladder startCellPosition={startCellRect} endCellPosition={endCellRect} itemType={"Ladder"}/>);
-          setLadderPositions(ladders);
+          setLadderPositions([...ladders.values()]);
         }
       }
 
@@ -65,17 +65,17 @@ function Board(){
           const startCellRect = startCell.getBoundingClientRect();
           const endCellRect = endCell.getBoundingClientRect();
           ladders.set(start, <Ladder startCellPosition={startCellRect} endCellPosition={endCellRect}/>);
-          setLadderPositions(ladders);
+          setLadderPositions([...ladders.values()]);
         }
       }
   }, []);
     return (
-        <Container className="p-3">
+        <div className="p-2 ">
           <div className="board">
             {row1}
           </div>
           {ladderPositions}
-        </Container>
+        </div>
     );
   }
 

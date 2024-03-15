@@ -4,10 +4,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect, createContext, useRef } from 'react';
 import gsap from "gsap";
 import {useGSAP} from '@gsap/react';
-
-
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Button from './ResetButton';
 
 export const playerContext = createContext();
@@ -38,6 +34,17 @@ const snakeMap = new Map([
   [98, 84]
 ]);
 
+function Header(){
+  return(
+  
+      <div className='translate-y-1/4 mb-4'>
+        <h1 className="text-white font-unbounded text-xl -mb-2 sm:text-3xl">Snakes and Ladders</h1>
+        <hr className='border-2 border-white border-dotted -translate-y-full' />
+      </div>
+    
+  );
+  }
+
 function Game(){
     const nodeRef = useRef(null);
     const [diceNum, setDiceNum] = useState(6);
@@ -53,7 +60,7 @@ function Game(){
 // let useflag = 0;
 async function roll(){
       let [diceRoll, nextPlayerPos] = await movePlayer(player);
-      
+      console.log(nodeRef);
       animStartObj.current = await getPlayerCoords(nodeRef.current);
 
       setDiceNum(diceRoll);
@@ -96,28 +103,34 @@ async function roll(){
       setReachedItemFlag(false);
     }, [reachedItemFlag]);
 
-    return <Row>
+    return <div className='grid grid-cols-12'>
       <refContext.Provider value={nodeRef}>
         <ladderContext.Provider value={snlobj}>
         <playerContext.Provider value={player}>
-          <Col sm = {8}>
+          <div className='col-span-12 sm:col-span-8'>
             <Board />
-          </Col>
+          </div>
         </playerContext.Provider>
       </ladderContext.Provider>
       </refContext.Provider>
     
-    <Col sm = {4}>
+    <div className='col-span-12 sm:col-span-4 justify-self-center sm:justify-self-start'>
+      <Header/>
       <Dice number={diceNum} onDiceClick={() => roll()}/>
       <Button onButtonClick = {() => resetGame()}></Button>
-    </Col> 
-  </Row>;
+    </div> 
+  </div>;
   }
   
   export default Game;
 
 function getPlayerCoords(domObj){
-  const {top, left} = domObj.getBoundingClientRect();
+  let scrWid = window.screen.width;
+  let {top, left} = domObj.getBoundingClientRect();
+  if(scrWid<=480)
+  {
+top = top-24;
+  }
   return {top, left};
 }
 

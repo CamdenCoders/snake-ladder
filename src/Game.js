@@ -9,6 +9,7 @@ import Button from './ResetButton';
 export const playerContext = createContext();
 export const ladderContext = createContext();
 export const refContext = createContext();
+export const diceRefContext = createContext();
 
 const ladderMap = new Map([
   [10,12],
@@ -47,10 +48,11 @@ function Header(){
 
 function Game(){
     const nodeRef = useRef(null);
-    const [diceNum, setDiceNum] = useState(6);
+    const [diceNum, setDiceNum] = useState(null);
     const [player, setPlayer] = useState(1);
     const [reachedItemFlag, setReachedItemFlag] = useState(false);
     const animStartObj = useRef(null);
+    const diceRef = useRef(null);
   
   let snlobj = {
     ladders: ladderMap,
@@ -59,6 +61,10 @@ function Game(){
 
 // let useflag = 0;
 async function roll(){
+      console.log(diceRef.current);
+      var tl = gsap.timeline();
+      await tl.to(diceRef.current, {rotateX:"180deg", rotateY:"180deg", transformOrigin:"60% 100%", duration:2, transition:"ease-in-out"});
+      tl.to(diceRef.current, {rotateX:"-180deg", rotateY:"-180deg", transformOrigin:"60% 100%", duration:1.7, delay:1});
       let [diceRoll, nextPlayerPos] = await movePlayer(player);
       console.log(nodeRef);
       animStartObj.current = await getPlayerCoords(nodeRef.current);
@@ -74,8 +80,10 @@ async function roll(){
           }, 500);
         }
       }, 500);
+      setTimeout(() => {  
+        setDiceNum(null);
+    }, 1500);
       
-
       // checkBonus();
     }
 
@@ -91,7 +99,7 @@ async function roll(){
 
     function resetGame(){
         setPlayer(1);
-        setDiceNum(6);
+        setDiceNum(null);
         setReachedItemFlag(false);
     }
     
@@ -113,13 +121,15 @@ async function roll(){
         </playerContext.Provider>
       </ladderContext.Provider>
       </refContext.Provider>
-    
+
+    <diceRefContext.Provider value={diceRef}>
     <div className='col-span-12 sm:col-span-4 justify-self-center sm:justify-self-start'>
       <Header/>
       <Dice number={diceNum} onDiceClick={() => roll()}/>
       <Button onButtonClick = {() => resetGame()}></Button>
     </div> 
-  </div>;
+    </diceRefContext.Provider>
+  </div>
   }
   
   export default Game;

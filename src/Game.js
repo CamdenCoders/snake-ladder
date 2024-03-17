@@ -9,6 +9,7 @@ import Button from './ResetButton';
 export const playerContext = createContext();
 export const ladderContext = createContext();
 export const refContext = createContext();
+export const diceRefContext = createContext();
 const numberOfPlayers = 3;
 
 const ladderMap = new Map([
@@ -54,8 +55,7 @@ function Game(){
     const animStartObj = useRef(null);
     const chance = useRef(0);
     let chanceString = `Start Playing Player ${chance.current+1}`;
-    // let psuedoChance = chance;
-
+    const diceRef = useRef(null);
   let snlobj = {
     ladders: ladderMap,
     snakes: snakeMap
@@ -65,6 +65,15 @@ async function roll(){
       
       let [diceRoll, nextPlayerPos] = await movePlayer(player, chance.current);
       animStartObj.current = await getPlayerCoords(nodeRef.current[chance.current]);
+
+      console.log(diceRef.current);
+      var tl = gsap.timeline();
+      await tl.to(diceRef.current, {rotateX:"180deg", rotateY:"180deg", transformOrigin:"60% 100%", duration:2, transition:"ease-in-out"});
+      tl.to(diceRef.current, {rotateX:"-180deg", rotateY:"-180deg", transformOrigin:"60% 100%", duration:1.7, delay:1});
+      let [diceRoll, nextPlayerPos] = await movePlayer(player);
+      console.log(nodeRef);
+      animStartObj.current = await getPlayerCoords(nodeRef.current);
+
 
       setDiceNum(diceRoll);
       await setPlayer(nextPlayerPos);
@@ -76,7 +85,11 @@ async function roll(){
         }
 
       }, 500);
+      setTimeout(() => {  
+        setDiceNum(null);
+    }, 1500);
       
+
       chance.current = await updateChance(chance.current)
       chanceString = `Start Playing Player ${chance.current+1}`;
       console.log(nextPlayerPos)
@@ -143,15 +156,16 @@ async function roll(){
         </playerContext.Provider>
       </ladderContext.Provider>
       </refContext.Provider>
-    
+
+    <diceRefContext.Provider value={diceRef}>
     <div className='col-span-12 sm:col-span-4 justify-self-center sm:justify-self-start'>
       <Header/>
       <Dice number={diceNum} onDiceClick={() => roll()}/>
       <Button onButtonClick = {() => resetGame()}></Button>
       <h2 className='text-white'>{chanceString}</h2>
     </div> 
-  </div>;
-      
+    </diceRefContext.Provider>
+  </div>
   }
   
   export default Game;

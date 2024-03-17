@@ -9,6 +9,7 @@ import Button from './ResetButton';
 export const playerContext = createContext();
 export const ladderContext = createContext();
 export const refContext = createContext();
+const numberOfPlayers = 3;
 
 const ladderMap = new Map([
   [10,12],
@@ -46,62 +47,91 @@ function Header(){
   }
 
 function Game(){
-    const nodeRef = useRef(null);
+    const nodeRef = useRef(Array(numberOfPlayers));
     const [diceNum, setDiceNum] = useState(6);
-    const [player, setPlayer] = useState(1);
+    const [player, setPlayer] = useState(Array(numberOfPlayers).fill(1));
     const [reachedItemFlag, setReachedItemFlag] = useState(false);
     const animStartObj = useRef(null);
-  
+    const chance = useRef(0);
+    let chanceString = `Start Playing Player ${chance.current+1}`;
+    // let psuedoChance = chance;
+
   let snlobj = {
     ladders: ladderMap,
     snakes: snakeMap
   };
 
-// let useflag = 0;
 async function roll(){
-      let [diceRoll, nextPlayerPos] = await movePlayer(player);
-      console.log(nodeRef);
-      animStartObj.current = await getPlayerCoords(nodeRef.current);
+      
+      let [diceRoll, nextPlayerPos] = await movePlayer(player, chance.current);
+      animStartObj.current = await getPlayerCoords(nodeRef.current[chance.current]);
 
       setDiceNum(diceRoll);
-      setPlayer(nextPlayerPos);
-  
+      await setPlayer(nextPlayerPos);
+
       setTimeout(() => {
-        if(ladderMap.has(nextPlayerPos) || snakeMap.has(nextPlayerPos)){
-          animStartObj.current = getPlayerCoords(nodeRef.current);
-          setTimeout(() => {  
-              setReachedItemFlag(true);
-          }, 500);
+        if(ladderMap.has(nextPlayerPos[chance.current]) || snakeMap.has(nextPlayerPos[chance.current])){
+          animStartObj.current = getPlayerCoords(nodeRef.current[chance.current]);
+            setReachedItemFlag(true);
         }
+
       }, 500);
       
-
-      // checkBonus();
+      chance.current = await updateChance(chance.current)
+      chanceString = `Start Playing Player ${chance.current+1}`;
+      console.log(nextPlayerPos)
     }
 
     useGSAP(()=>{
-      if(animStartObj.current)  {
-        console.log(animStartObj.current);
-        const {top, left} = nodeRef.current.getBoundingClientRect();
-        gsap.from(nodeRef.current, {x: animStartObj.current.left-left, y: animStartObj.current.top-top, 
-        duration: 0.5});
+      console.log("usegsap " + chance.current)
+      if(animStartObj.current !== null)  {
+        const {top, left} = nodeRef.current[chance.current].getBoundingClientRect();
+        gsap.from(nodeRef.current[chance.current], {
+          x: animStartObj.current.left-left, 
+          y: animStartObj.current.top-top, 
+          duration: 0.5});
       } 
     },{ dependencies: [player], revertOnUpdate: false});
-
-
+    
     function resetGame(){
-        setPlayer(1);
+        chance.current = 0;
+        setPlayer(Array(numberOfPlayers).fill(1));
         setDiceNum(6);
         setReachedItemFlag(false);
     }
     
-    useEffect(() => {
-        if(reachedItemFlag && ladderMap.get(player))
-          setPlayer(ladderMap.get(player));
-        else if(reachedItemFlag && snakeMap.get(player))
-          setPlayer(snakeMap.get(player));
-      setReachedItemFlag(false);
-    }, [reachedItemFlag]);
+    useEffect(() => { 
+      // console.log("useeffect item "+ psuedoChance)
+        let afterItem = player.slice();
+        if(reachedItemFlag && ladderMap.get(afterItem[chance.current])){
+          afterItem[chance.current] = ladderMap.get(afterItem[chance.current]);
+          setPlayer(afterItem);
+
+        }
+        else if(reachedItemFlag && snakeMap.get(afterItem[chance.current])){
+          afterItem[chance.current] = snakeMap.get(afterItem[chance.current]);
+          setPlayer(afterItem);
+
+        }
+        
+        setReachedItemFlag(false);
+
+    },[reachedItemFlag, player]);
+
+    // async function utarChadhav(nextPlayerPos) { 
+    //   console.log("utrarchadhav item "+ psuedoChance)
+    //     let afterItem = player.slice();
+    //     if(ladderMap.get(nextPlayerPos[psuedoChance])){
+    //       console.log("seedi")
+    //       afterItem[psuedoChance] = ladderMap.get(nextPlayerPos[psuedoChance]);
+    //       await setPlayer(afterItem);
+    //     }
+    //     else if(snakeMap.get(nextPlayerPos[psuedoChance])){
+    //       console.log("saap");
+    //       afterItem[chance] = snakeMap.get(nextPlayerPos[psuedoChance]);
+    //       await setPlayer(afterItem);
+    //     }
+    // }
 
     return <div className='grid grid-cols-12'>
       <refContext.Provider value={nodeRef}>
@@ -118,8 +148,10 @@ async function roll(){
       <Header/>
       <Dice number={diceNum} onDiceClick={() => roll()}/>
       <Button onButtonClick = {() => resetGame()}></Button>
+      <h2 className='text-white'>{chanceString}</h2>
     </div> 
   </div>;
+      
   }
   
   export default Game;
@@ -129,18 +161,24 @@ function getPlayerCoords(domObj){
   let {top, left} = domObj.getBoundingClientRect();
   if(scrWid<=480)
   {
-top = top-24;
+    top = top-24;
   }
   return {top, left};
 }
 
-function movePlayer(player){
+function movePlayer(player, chance){
   let min = 1;
   let max = 6;
+  let nextPlayerPos = player.slice();
   let randDice = Math.floor(Math.random() * (max - min +1) ) + min;
-  let nextPlayerPos = randDice + player;
+  nextPlayerPos[chance] = randDice + player[chance];
 
-  if(nextPlayerPos > 100) nextPlayerPos = nextPlayerPos - randDice;
+  if(nextPlayerPos[chance] > 100) nextPlayerPos[chance] = nextPlayerPos[chance] - randDice;
 
   return [randDice, nextPlayerPos];
+}
+
+function updateChance(chance){
+  chance = (chance +1)%numberOfPlayers ;
+  return chance;
 }

@@ -82,7 +82,7 @@ async function roll(){
       }, 500);
       setTimeout(() => {  
         setDiceNum(null);
-    }, 1500);
+    }, 1000);
       
       // checkBonus();
     }

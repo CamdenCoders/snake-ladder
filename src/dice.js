@@ -2,9 +2,27 @@ import './dice.css';
 import gsap from "gsap";
 import { useContext, useRef } from 'react';
 import { diceRefContext } from './Game';
-
+import one from './one.png';
+import two from './two.png';
+import three from './three.png';
+import four from './four.png';
+import five from './five.png';
+import six from './six.png';
+import red from './red.png';
 export default function Dice({onDiceClick, number}){
     const diceRef = useContext(diceRefContext);
+    let image;
+    console.log(number);
+    switch(number)
+    {
+case 1: image = one; break;
+case 2: image = two; break;
+case 3: image = three; break;
+case 4: image = four; break;
+case 5: image = five; break;
+case 6: image = six; break;
+default: image = red;
+    }
     // function diceMove(){
     //     var tl = gsap.timeline();
     //     tl.to(diceRef.current, {rotateX:"180deg", rotateY:"180deg", transformOrigin:"60% 100%", duration:2, transition:"ease-in-out"});
@@ -25,7 +43,12 @@ export default function Dice({onDiceClick, number}){
             <div className="cubeFace"></div>
             <div className="cubeFace face2"></div>
         </div> 
-        <p className='font-unbounded mt-3 font-bold text-3xl text-white absolute top-28 right-60 mr-1'>{number}</p>
+        {
+            number && (
+                <img src={image} onClick={onDiceClick} className='border-red-500 absolute w-[70px] h-[70px] top-28 right-60 -mr-5' />
+            )
+        }
+        {/* <p className='font-unbounded mt-3 font-bold text-3xl text-white absolute top-28 right-60 mr-1'>{number}</p> */}
         </>
     );
 }

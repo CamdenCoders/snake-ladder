@@ -1,8 +1,67 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import App from './App';
-
-test('renders learn react link', () => {
+import Game from './Game';
+import { socket } from './socket';
+jest.mock('./socket', () => ({ socket: { connected: true, on: jest.fn(), off: jest.fn(), connect: jest.fn(), timeout: jest.fn(), emit: jest.fn() } }));
+jest.mock('./Board', () => () => <div>Board</div>);
+beforeEach(() => { sessionStorage.clear(); jest.clearAllMocks(); socket.timeout.mockReturnValue(socket); });
+const game = {roomId:'ABCDEF', capacity:3, version:3, phase:'playing', turn:0, players:[{id:'a',position:1},{id:'b',position:1},{id:'c',position:1}], ladders:[], snakes:[], lastMove:null};
+test('room creation passes selected capacity and waits for acceptance', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Number of players'), {target:{value:'3'}});
+  fireEvent.click(screen.getByText('New Game'));
+  expect(socket.emit).toHaveBeenCalledWith('create-room', expect.objectContaining({capacity:3}), expect.any(Function));
+  expect(screen.getByText('Connecting…')).toBeInTheDocument();
+  act(() => socket.emit.mock.calls[0][2](null,{ok:false,error:'Room full'}));
+  expect(screen.getByRole('alert')).toHaveTextContent('Room full');
+  expect(screen.getByText('New Game')).toBeInTheDocument();
+});
+test('accepted admission displays player identity and server snapshots, ignoring stale ones', () => {
+  render(<App />); fireEvent.click(screen.getByText('New Game'));
+  act(() => socket.emit.mock.calls[0][2](null,{ok:true,playerId:'c',state:game}));
+  expect(screen.getByText('You are Player 3')).toBeInTheDocument();
+  const update=socket.on.mock.calls.find(([event])=>event==='game-state')[1];
+  act(()=> update({...game,version:4,turn:2}));
+  expect(screen.getByRole('status')).toHaveTextContent("Player 3's turn");
+  act(()=> update({...game,version:3,turn:0}));
+  expect(screen.getByRole('status')).toHaveTextContent("Player 3's turn");
+});
+test('roll is a single versioned request and locks while awaiting server', () => {
+  render(<Game game={game} playerId="a" connected />);
+  fireEvent.click(screen.getByRole('button',{name:'Roll dice'}));
+  fireEvent.click(screen.getByRole('button',{name:'Roll dice'}));
+  expect(socket.emit).toHaveBeenCalledTimes(1);
+  expect(socket.emit).toHaveBeenCalledWith('roll',{roomId:'ABCDEF',version:3},expect.any(Function));
+});
+test('waiting, opponents turn and finished game disable rolling', () => {
+  const {rerender}=render(<Game game={game} playerId="b" connected />);
+  expect(screen.getByRole('button',{name:'Roll dice'})).toBeDisabled();
+  rerender(<Game game={{...game,phase:'waiting'}} playerId="a" connected />);
+  expect(screen.getByRole('button',{name:'Roll dice'})).toBeDisabled();
+  rerender(<Game game={{...game,phase:'finished',winnerId:'c'}} playerId="a" connected />);
+  expect(screen.getByRole('status')).toHaveTextContent('Player 3 wins!');
+  expect(screen.getByRole('button',{name:'Roll dice'})).toBeDisabled();
+});
+
+test('saved session resumes on refresh and retains identity', () => {
+  sessionStorage.setItem('snake-ladder-session',JSON.stringify({roomId:'ABCDEF',token:'secret'}));
+  render(<App />);
+  expect(socket.emit).toHaveBeenCalledWith('resume-room',{roomId:'ABCDEF',token:'secret'},expect.any(Function));
+  act(()=>socket.emit.mock.calls[0][2](null,{ok:true,playerId:'b',token:'secret',state:game}));
+  expect(screen.getByText('You are Player 2')).toBeInTheDocument();
+});
+test('disconnect pauses play and rematch requires a request', () => {
+  const {rerender}=render(<Game game={{...game,players:game.players.map((p,i)=>({...p,connected:i!==1}))}} playerId="a" connected />);
+  expect(screen.getByRole('status')).toHaveTextContent('Paused');
+  expect(screen.getByRole('button',{name:'Roll dice'})).toBeDisabled();
+  rerender(<Game game={{...game,phase:'finished',winnerId:'a'}} playerId="a" connected />);
+  fireEvent.click(screen.getByText('Play again'));
+  expect(socket.emit).toHaveBeenCalledWith('rematch',{roomId:'ABCDEF'},expect.any(Function));
+});
+test('share link uses LAN metadata and displays a usable phone address', async () => {
+  global.fetch=jest.fn().mockResolvedValue({ok:true,json:async()=>({url:'http://10.0.0.240:3000'})});
+  render(<Game game={game} playerId="a" connected />);
+  await act(async()=>fireEvent.click(screen.getByText('Share room link')));
+  expect(screen.getByText(/http:\/\/10\.0\.0\.240:3000\/\?room=ABCDEF/)).toBeInTheDocument();
+  delete global.fetch;
 });

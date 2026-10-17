@@ -1,24 +1,12 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPerson } from '@fortawesome/free-solid-svg-icons'
-import { useState, useEffect, createContext, useContext, useRef } from 'react';
-import {refContext} from './Game';
-
-const colors = ["text-white", "text-red-500", "text-green-500"]
-
-function Person({pos, position}){
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPerson } from '@fortawesome/free-solid-svg-icons';
+import { useContext } from 'react';
+import { refContext, playerColors } from './Game';
+export default function Person({ pos, position }) {
   const ref = useContext(refContext);
-      return  (
-      <>
-        {position.map((p, index) => {
-        if (pos === p) {
-          return <FontAwesomeIcon className={`-translate-y-6 sm:translate-y-0 sm:mb-0 text-sm sm:text-3xl ${colors[index]}`} key={index} icon={faPerson} ref={(element) => ref.current[index] = element}/>;
-        } else {
-          return null;
-        }
-      })}
-      </>
-      
-      );
-  } 
-
-export default Person;
+  return <span style={{display:'flex', flexWrap:'wrap', position:'relative', zIndex:2}}>
+    {position.map((p, index) => p === pos ? <FontAwesomeIcon key={index} icon={faPerson}
+      title={`Player ${index+1}`} style={{color:playerColors[index], width:'0.65em'}}
+      ref={element => { ref.current[index] = element; }} /> : null)}
+  </span>;
+}

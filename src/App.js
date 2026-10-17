@@ -1,29 +1,5 @@
 import './App.css';
 import BeginDialog from './BeginDialog';
-import Game from './Game';
-
-function App() {
-  return (<>
-    <div className="text-center bg-black h-screen sm:h-4/5 font-quicksand font-semibold">
-      {/* <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header> */}
-      <BeginDialog/>
-      
-    </div>
-  </>
-  );
+export default function App() {
+  return <div className="text-center bg-black min-h-screen font-quicksand font-semibold"><BeginDialog /></div>;
 }
-
-export default App;

@@ -7,7 +7,7 @@ function localHostname({platform = process.platform, hostname = os.hostname, exe
     ? exec('/usr/sbin/scutil', ['--get', 'LocalHostName'], {encoding: 'utf8'}).trim()
     : hostname().replace(/\.$/, '');
   if (!name) throw new Error('Local hostname is unavailable');
-  return name.toLowerCase().endsWith('.local') ? name : `${name.split('.')[0]}.local`;
+  return (name.toLowerCase().endsWith('.local') ? name : `${name.split('.')[0]}.local`).toLowerCase();
 }
 
 function lanInfo() {

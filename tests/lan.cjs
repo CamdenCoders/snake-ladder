@@ -7,10 +7,10 @@ test('macOS uses the Bonjour name rather than the system hostname', () => {
     assert.equal(file, '/usr/sbin/scutil');
     assert.deepEqual(args, ['--get', 'LocalHostName']);
     return 'Game-Host\n';
-  }}), 'Game-Host.local');
+  }}), 'game-host.local');
 });
 test('other hosts normalize the local suffix', () => {
-  for (const name of ['game-host', 'game-host.local', 'game-host.example.org', 'game-host.local.']) {
+  for (const name of ['GAME-HOST.LOCAL', 'game-host', 'game-host.local', 'game-host.example.org', 'game-host.local.']) {
     assert.equal(localHostname({platform:'linux', hostname:()=>name}), 'game-host.local');
   }
 });

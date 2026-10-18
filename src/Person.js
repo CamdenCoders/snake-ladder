@@ -1,25 +1,12 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPerson } from '@fortawesome/free-solid-svg-icons'
-import { useState, useEffect, createContext, useContext, useRef } from 'react';
-import {refContext} from './Game';
-import { gsap } from "gsap";
-
-function Person({pos, position}){
-  // gsap.to("#personAnim", {color:"green", y:100, duration:1});
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPerson } from '@fortawesome/free-solid-svg-icons';
+import { useContext } from 'react';
+import { refContext, playerColors } from './Game';
+export default function Person({ pos, position }) {
   const ref = useContext(refContext);
-    if(pos === position){
-      console.log(position);
-      return  (
-      <>
-      {/* <FontAwesomeIcon className="personIcon" icon={faPerson}/> */}
-      <FontAwesomeIcon ref={ref} id="personAnim" className="personIcon" icon={faPerson}/>
-      </>
-      
-      );
-    }
-    
-    else
-    return <></>
-  } 
-
-export default Person;
+  return <span style={{display:'flex', flexWrap:'wrap', position:'relative', zIndex:2}}>
+    {position.map((p, index) => p === pos ? <FontAwesomeIcon key={index} icon={faPerson}
+      title={`Player ${index+1}`} style={{color:playerColors[index], width:'0.65em'}}
+      ref={element => { ref.current[index] = element; }} /> : null)}
+  </span>;
+}

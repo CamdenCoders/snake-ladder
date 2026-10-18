@@ -11,11 +11,28 @@ export const diceRefContext = createContext(null);
 export const imageRefContext = createContext(null);
 export const playerColors = ['#ffffff', '#f87171', '#4ade80', '#60a5fa', '#facc15', '#c084fc', '#fb923c', '#f472b6'];
 
+const SOUND_KEY='snake-ladder-muted';
+function soundPreference() {try {return localStorage.getItem(SOUND_KEY)==='true';} catch {return false;}}
+
 export default function Game({ game, playerId, connected, onLeave }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [now, setNow] = useState(Date.now());
   const [share, setShare] = useState('');
+  const [muted,setMuted]=useState(soundPreference);
+  const mutedRef=useRef(muted);
+  mutedRef.current=muted;
+  useEffect(()=>{
+    const update=event=>{if(event.key===SOUND_KEY || event.key===null) setMuted(soundPreference());};
+    window.addEventListener('storage',update);
+    return ()=>window.removeEventListener('storage',update);
+  },[]);
+  function toggleSound() {
+    const value=!muted;
+    mutedRef.current=value;setMuted(value);
+    if(value && audioRef.current) {audioRef.current.pause();audioRef.current.currentTime=0;}
+    try {localStorage.setItem(SOUND_KEY,String(value));} catch {}
+  }
   useEffect(() => {const timer=setInterval(()=>setNow(Date.now()),100); return ()=>clearInterval(timer);}, []);
   const diceRef = useRef(null);
   const imageRef = useRef(null);
@@ -27,7 +44,10 @@ export default function Game({ game, playerId, connected, onLeave }) {
   const canRoll = connected && game.phase === 'playing' && game.players[game.turn]?.id === playerId && !pending && now >= (game.busyUntil || 0) && !game.players.some(p=>!p.forfeited && p.connected === false);
   const moveNumber=game.lastMove?.number;
   useEffect(() => {
-    if (moveNumber) audioRef.current?.play()?.catch(() => {});
+    if (moveNumber && !mutedRef.current) {
+      const audio=audioRef.current;
+      if(audio) {audio.currentTime=0;audio.play()?.catch(() => {});}
+    }
   }, [moveNumber]);
   function roll() {
     if (!canRoll) return;
@@ -51,6 +71,7 @@ export default function Game({ game, playerId, connected, onLeave }) {
       </imageRefContext.Provider></diceRefContext.Provider>
       {!rolling && game.lastMove && <p aria-live="polite">Rolled {game.lastMove.roll}</p>}
       <div className="flex flex-wrap justify-center gap-2 my-3">
+        <button className="bg-white text-black p-2 rounded" onClick={toggleSound}>{muted ? 'Unmute sound' : 'Mute sound'}</button>
         <button className="bg-white text-black p-2 rounded" onClick={async()=>{
           try {await navigator.clipboard.writeText(game.roomId); setShare('Room code copied.');} catch {setShare(`Room code: ${game.roomId}`);}
         }}>Copy room code</button>
@@ -73,7 +94,7 @@ export default function Game({ game, playerId, connected, onLeave }) {
           });
         }}>Play again</button>
       </>}
-      <audio ref={audioRef} src={diceAudio} />
+      <audio ref={audioRef} src={diceAudio} muted={muted} />
       <p>Land exactly on 100 to win. A six does not grant another turn.</p>
       {error && <p role="alert">{error}</p>}
     </section>

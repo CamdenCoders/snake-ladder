@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {createServer}=require('../../snake-ladder_backend/server');
 const {io}=require('socket.io-client');
 (async()=>{
- const server=createServer({port:0,animationMs:0,dice:()=>5}); const clients=[];
+ const server=createServer({port:0,logger:()=>{},animationMs:0,dice:()=>5}); const clients=[];
  await new Promise(r=>server.io.httpServer.listening?r():server.io.httpServer.once('listening',r));
  const url=`http://localhost:${server.io.httpServer.address().port}`;
  const ask=(s,e,p)=>new Promise((resolve,reject)=>s.timeout(2000).emit(e,p,(err,res)=>err?reject(err):resolve(res)));

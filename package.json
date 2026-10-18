@@ -29,7 +29,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "local": "node scripts/local.cjs"
+    "local": "node scripts/local.cjs",
+    "test:backend": "node --test ../snake-ladder_backend/game.test.js ../snake-ladder_backend/operations.test.js tests/recovery.cjs tests/operations.cjs tests/lan.cjs",
+    "test:multiplayer": "node tests/multiplayer.cjs"
   },
   "eslintConfig": {
     "extends": [
@@ -50,6 +52,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "npm:@babel/plugin-transform-private-property-in-object@^7.27.1",
     "tailwindcss": "^3.4.1"
   }
 }

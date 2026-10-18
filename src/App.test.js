@@ -4,7 +4,7 @@ import Game from './Game';
 import { socket } from './socket';
 jest.mock('./socket', () => ({ socket: { connected: true, on: jest.fn(), off: jest.fn(), connect: jest.fn(), timeout: jest.fn(), emit: jest.fn() } }));
 jest.mock('./Board', () => () => <div>Board</div>);
-beforeEach(() => { sessionStorage.clear(); jest.clearAllMocks(); socket.timeout.mockReturnValue(socket); });
+beforeEach(() => { sessionStorage.clear(); localStorage.clear(); jest.clearAllMocks(); socket.timeout.mockReturnValue(socket); });
 const game = {roomId:'ABCDEF', capacity:3, version:3, phase:'playing', turn:0, players:[{id:'a',position:1},{id:'b',position:1},{id:'c',position:1}], ladders:[], snakes:[], lastMove:null};
 test('room creation passes selected capacity and waits for acceptance', () => {
   render(<App />);
@@ -58,10 +58,32 @@ test('disconnect pauses play and rematch requires a request', () => {
   fireEvent.click(screen.getByText('Play again'));
   expect(socket.emit).toHaveBeenCalledWith('rematch',{roomId:'ABCDEF'},expect.any(Function));
 });
-test('share link uses LAN metadata and displays a usable phone address', async () => {
-  global.fetch=jest.fn().mockResolvedValue({ok:true,json:async()=>({url:'http://10.0.0.240:3000'})});
+test('share link uses the hosting computer hostname from LAN metadata', async () => {
+  global.fetch=jest.fn().mockResolvedValue({ok:true,json:async()=>({url:'http://Game-Host.local:3000'})});
   render(<Game game={game} playerId="a" connected />);
   await act(async()=>fireEvent.click(screen.getByText('Share room link')));
-  expect(screen.getByText(/http:\/\/10\.0\.0\.240:3000\/\?room=ABCDEF/)).toBeInTheDocument();
+  expect(screen.getByText(/http:\/\/Game-Host\.local:3000\/\?room=ABCDEF/)).toBeInTheDocument();
   delete global.fetch;
+});
+test('muting stops audio, persists across visits, and unmuting only affects future rolls', () => {
+  const play=jest.spyOn(HTMLMediaElement.prototype,'play').mockResolvedValue();
+  const pause=jest.spyOn(HTMLMediaElement.prototype,'pause').mockImplementation(()=>{});
+  const rolled={...game,lastMove:{number:4,roll:2}};
+  const view=render(<Game game={rolled} playerId="a" connected />);
+  expect(play).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByText('Mute sound'));
+  expect(pause).toHaveBeenCalledTimes(1);expect(localStorage.getItem('snake-ladder-muted')).toBe('true');
+  view.rerender(<Game game={{...rolled,lastMove:{number:5,roll:3}}} playerId="a" connected />);
+  expect(play).toHaveBeenCalledTimes(1);view.unmount();
+  const next=render(<Game game={rolled} playerId="a" connected />);
+  expect(screen.getByText('Unmute sound')).toBeInTheDocument();expect(play).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByText('Unmute sound'));
+  expect(localStorage.getItem('snake-ladder-muted')).toBe('false');expect(play).toHaveBeenCalledTimes(1);
+  next.rerender(<Game game={{...rolled,lastMove:{number:6,roll:4}}} playerId="a" connected />);
+  expect(play).toHaveBeenCalledTimes(2);play.mockRestore();pause.mockRestore();
+});
+test('sound preference changes in another tab update this game',()=>{
+  const {container}=render(<Game game={game} playerId="a" connected />);
+  act(()=>{localStorage.setItem('snake-ladder-muted','true');window.dispatchEvent(new StorageEvent('storage',{key:'snake-ladder-muted',newValue:'true'}));});
+  expect(screen.getByText('Unmute sound')).toBeInTheDocument();expect(container.querySelector('audio').muted).toBe(true);
 });

@@ -25,7 +25,7 @@ flowchart TB
     C --- T
 ```
 
-The host computer serves assets and runs game logic in separate processes. Phones connect to both ports directly using the host's LAN address. `lan-info.json` supports sharing links; it is not a room registry or source of game state. No database, REST API, or client-to-client game connection is implemented.
+The host computer serves assets and runs game logic in separate processes. Phones connect to both ports directly using the host’s local hostname (or LAN IP address). `lan-info.json` supports sharing links; it is not a room registry or source of game state. No database, REST API, or client-to-client game connection is implemented.
 
 | Boundary | Owns | Does not decide |
 | --- | --- | --- |
@@ -181,7 +181,7 @@ The animation runs once per move number, catches up when joining/recovering mid-
 | --- | --- | --- |
 | `REACT_APP_BACKEND_URL` | Frontend build/development environment | Overrides socket destination; otherwise development uses browser hostname on port 3500 and production uses page origin |
 | `PORT` | Backend | 3500 for separate startup; launcher explicitly sets 3500 |
-| `FRONTEND_ORIGINS` | Backend | Comma-separated allowed origins; otherwise localhost and detected LAN IPv4 addresses on port 3000 |
+| `FRONTEND_ORIGINS` | Backend | Comma-separated allowed origins; the launcher supplies localhost, the detected local hostname, and LAN IPv4 addresses on port 3000; standalone backend startup defaults to localhost and LAN IPv4 addresses |
 | `HOST`, frontend `PORT` | Launcher/frontend | Launcher binds the development server to `0.0.0.0:3000` |
 | `homepage` | Frontend package configuration | Production asset base path; does not host or locate a backend |
 
@@ -195,4 +195,18 @@ Frontend unit/component tests cover admission, snapshot ordering, controls, geom
 
 ## Limits
 
-Recovery cannot survive a backend restart. Browser sessionStorage can be copied by tab duplication or lost when a tab closes. Reduced-motion changes made during a move apply on the next move. Background tab throttling may skip intermediate animation frames; final snapshots remain authoritative. Sound muting, richer accessibility, rate limits, health reporting, persistent rooms and internet hosting are outside this increment.
+Recovery cannot survive a backend restart. Browser sessionStorage can be copied by tab duplication or lost when a tab closes. Reduced-motion changes made during a move apply on the next move. Background tab throttling may skip intermediate animation frames; final snapshots remain authoritative. Sound muting, health reporting and application request limits are implemented. Accessibility work, device testing and internet hosting are excluded. Persistent rooms remain optional.
+
+## Sound preference
+
+`Game` stores a muted boolean in localStorage and uses a ref in the roll-sound effect, so toggling sound does not replay the current move. Muting pauses and resets current audio immediately. Native audio muting also follows cross-tab storage changes. Storage access failures preserve in-memory controls. Playback rejection is caught so browser autoplay policy cannot break gameplay.
+
+## Operational behavior
+
+The backend attaches Socket.IO to an explicit Node HTTP server. `/health` returns an uncached availability response with uptime, room and connection counts; it exposes no room codes or credentials. Unknown HTTP routes return JSON 404 responses.
+
+`operations.js` supplies `RequestError` for expected validation/rule failures and a fixed-window limiter. Every known action consumes both a connection budget (30/10 seconds) and an address budget (150/10 seconds), before checking the acknowledgment callback or executing an action. Failed budgets return retryAfterMs without invoking gameplay code. Server-factory options can override limits and windowMs for tests. Addresses are taken from the actual socket handshake, not a client-supplied payload/header. Expired address buckets are swept; socket buckets are removed on disconnect, and all buckets/timers are cleared on shutdown. Requests are capped at 16 KiB.
+
+A structured logger records lifecycle events and request failures without payloads, resume tokens or addresses. Expected RequestErrors retain actionable client messages. Unexpected errors produce a generic client response and an error-level event with action, room and error type. Logger failures cannot interrupt gameplay. Rate-limit logging occurs only on the first exceeded request per budget window. SIGINT/SIGTERM close the server and release timers.
+
+Tests cover sound persistence/cross-tab changes, health availability/counts, rate boundaries and recovery, shared address budgets, malformed input, internal-error handling and credential omission. Browser/device testing is outside the agreed scope.

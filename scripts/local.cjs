@@ -1,15 +1,14 @@
 const {spawn} = require('child_process');
-const {networkInterfaces} = require('os');
+const {lanInfo} = require('./lan.cjs');
 const {writeFileSync,unlinkSync} = require('fs');
 const path = require('path');
 const root=path.resolve(__dirname,'..');
-const addresses=Object.values(networkInterfaces()).flat().filter(a=>a.family==='IPv4'&&!a.internal).map(a=>a.address);
-const url=`http://${addresses[0] || 'localhost'}:3000`;
+const {url, origins}=lanInfo();
 const info=path.join(root,'public/lan-info.json');
 writeFileSync(info,JSON.stringify({url}));
 console.log(`\nComputer: http://localhost:3000\nPhone (same Wi-Fi): ${url}\n`);
 const children=[
- spawn(process.execPath,['server.js'],{cwd:path.resolve(root,'../snake-ladder_backend'),stdio:'inherit',detached:process.platform!=='win32',env:{...process.env,PORT:'3500',FRONTEND_ORIGINS:['http://localhost:3000',...addresses.map(a=>`http://${a}:3000`)].join(',')}}),
+ spawn(process.execPath,['server.js'],{cwd:path.resolve(root,'../snake-ladder_backend'),stdio:'inherit',detached:process.platform!=='win32',env:{...process.env,PORT:'3500',FRONTEND_ORIGINS:origins.join(',')}}),
  spawn('npm',['start'],{cwd:root,stdio:'inherit',detached:process.platform!=='win32',env:{...process.env,BROWSER:'none',HOST:'0.0.0.0',PORT:'3000'}})
 ];
 let stopping=false;

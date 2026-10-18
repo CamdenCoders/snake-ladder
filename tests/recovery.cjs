@@ -5,7 +5,7 @@ const {io}=require('socket.io-client');
 const ask=(s,event,payload)=>new Promise((resolve,reject)=>s.timeout(2000).emit(event,payload,(err,result)=>err?reject(err):resolve(result)));
 async function until(predicate) {for(let i=0;i<100;i++){if(predicate())return;await new Promise(r=>setTimeout(r,10));}throw Error('Timed out waiting for state');}
 async function setup(t, options={}) {
- const server=createServer({port:0,animationMs:0,graceMs:150,dice:()=>1,...options});
+ const server=createServer({port:0,logger:()=>{},animationMs:0,graceMs:150,dice:()=>1,...options});
  await new Promise(r=>server.io.httpServer.listening?r():server.io.httpServer.once('listening',r));
  const clients=[];
  async function connect(){const c=io(`http://localhost:${server.io.httpServer.address().port}`,{transports:['websocket'],reconnection:false});clients.push(c);await new Promise((r,j)=>{c.once('connect',r);c.once('connect_error',j)});return c;}

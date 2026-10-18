@@ -51,7 +51,7 @@ Read [DESIGN.md](DESIGN.md) for component boundaries, request sequences, state l
 2. From this repository run `npm run local`.
 3. Open the printed computer URL. On phones, connect to the same Wi-Fi and open the printed phone URL.
 
-The command starts both services, configures allowed origins for current IPv4 interfaces, and generates an ignored `public/lan-info.json` for the Share room link button. Stop both services with Ctrl+C. Ports 3000 and 3500 must be available. The repositories must be sibling directories.
+The command starts both services, detects the hosting computer’s local hostname and configures allowed origins for that name and current IPv4 interfaces, and generates an ignored `public/lan-info.json` for the Share room link button. Stop both services with Ctrl+C. Ports 3000 and 3500 must be available. The repositories must be sibling directories.
 
 Create a room, select the player count, and share its code or room link. Links prefill the code; each player selects Join Game. Play starts when the room fills. Keep the computer awake while playing.
 
@@ -61,7 +61,8 @@ Create a room, select the player count, and share its code or room link. Links p
 - After switching networks, restart `npm run local` so the phone URL and allowed origins refresh.
 - Phones must use the computer’s printed Wi-Fi URL, rather than `localhost`.
 - If ports are already occupied, stop the older game servers before starting the command.
-- If there are multiple network adapters, use the computer’s Wi-Fi IPv4 address. Allowed origins include all detected IPv4 addresses; the first is used by the share button.
+- The printed phone URL and shared room links use `http://<host-local-name>.local:3000`. On macOS, the launcher reads the Bonjour local hostname automatically. Other systems must have mDNS enabled to advertise their `.local` name. If hostname detection fails, the launcher falls back to an IPv4 address.
+- If a device cannot resolve the `.local` name, use the computer’s Wi-Fi IPv4 address with port 3000. Allowed origins also include all detected IPv4 addresses.
 
 For separate startup, run `node server.js` in the backend and `npm start` here. The backend automatically allows localhost and detected IPv4 addresses on port 3000. `FRONTEND_ORIGINS` can override this with comma-separated origins; `PORT` overrides backend port 3500. `REACT_APP_BACKEND_URL` overrides the frontend connection URL. LAN share-link metadata is generated only by `npm run local`.
 
@@ -91,8 +92,24 @@ Rooms and reconnect credentials live in backend memory. **A backend restart clea
 
 Network tests bind temporary local ports. Tests use deterministic dice only in temporary test servers; the normal backend uses crypto-generated dice.
 
-## Remaining P2 work
+## Sound controls
 
-Sound controls, additional accessibility refinements and device testing, operational health/error reporting and rate limits remain. Responsive board coordinates and the requested player animation are implemented. Internet hosting is outside scope.
+Use **Mute sound / Unmute sound** in the game. Muting stops the current roll sound and saves the preference in localStorage. It persists across refreshes and updates other tabs on the same browser origin. Unmuting enables future sounds without replaying the previous roll. Browsers that block autoplay do not interrupt gameplay. If browser storage is unavailable, the setting still works for the current visit.
+
+## Backend operations
+
+- `GET http://localhost:3500/health` returns JSON containing `status`, uptime in seconds, room count and connection count. A 200 response confirms the backend HTTP service is running. It does not check phone connectivity or browser origins.
+- Server output is structured JSON, with `time`, `level` and `event`. Events include server startup/shutdown, room creation/deletion, admission/recovery/disconnection/forfeit, game completion, rematches, rejected requests and internal errors. Logs omit resume tokens, request payloads and socket addresses. Unexpected errors return a generic client message.
+- Known Socket.IO actions allow **30 requests per connection per 10 seconds** and **150 per network address per 10 seconds**. Over-budget requests return an error with `retryAfterMs` and do not mutate game state. Reconnecting cannot reset the shared address budget. Requests without acknowledgment callbacks also consume the budget. Only the first denial for a budget window is logged. Expired counters and disconnected socket counters are cleaned up. These are basic application request limits, not connection-level denial-of-service protection.
+- Incoming Socket.IO messages are limited to 16 KiB.
+- `npm run test:backend` checks game rules, operational behavior, recovery and LAN URL helpers. `npm run test:multiplayer` checks four-player synchronization. Both require the sibling backend installed.
+
+## Tooling
+
+The CRA Babel preset expects an older plugin name. An npm alias maps that name to the compatible maintained Babel 7 transform, preventing the placeholder warning and its delayed warning timer. Browser compatibility data and the public-suffix parser are refreshed in the lockfile. No framework migration is included. The legacy test environment still emits Node DEP0040 from its whatwg-url dependency; the build is clean and tests pass. Removing that final test-only deprecation requires a separate test-toolchain update.
+
+## Scope
+
+The agreed P2 work—sound controls, backend health checks/logging/request limits, documentation and targeted dependency cleanup—is implemented. Accessibility work, device testing and internet deployment are excluded at your request. Room persistence across backend restarts remains an optional future enhancement.
 
 See [DESIGN.md](DESIGN.md) for the complete system architecture and protocol.
